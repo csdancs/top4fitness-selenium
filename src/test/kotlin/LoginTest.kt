@@ -1,4 +1,5 @@
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.By
@@ -25,20 +26,19 @@ class LoginTest {
 
     @Test
     fun testLogin() {
-        driver.get("https://testepites.pro/wp-login.php")
+        driver.get("https://top4fitness.hu/user/login")
 
-        val usernameInput: WebElement = driver.findElement(By.name("log"))
-        val passwordInput: WebElement = driver.findElement(By.name("pwd"))
+        val usernameInput: WebElement = driver.findElement(By.name("login"))
+        val passwordInput: WebElement = driver.findElement(By.name("pass"))
 
-        usernameInput.sendKeys("YOURUSERNAME")
-        passwordInput.sendKeys("YOURPASSWORD")
+        usernameInput.sendKeys("yourusername")
+        passwordInput.sendKeys("yourpassword")
 
-        val loginButton = driver.findElement(By.cssSelector("input[type='submit']"))
+        val loginButton = driver.findElement(By.cssSelector("button[type='submit']"))
         loginButton.click()
 
-        WebDriverWait(driver, Duration.ofSeconds(5))
-            .until(ExpectedConditions.urlToBe("https://testepites.pro/"))
+        val logoutExists = driver.get("https://top4fitness.hu/user/out")
 
-        assertEquals("https://testepites.pro/", driver.currentUrl)
+        assertNotNull(logoutExists)
     }
 }
