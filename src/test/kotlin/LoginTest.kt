@@ -6,7 +6,10 @@ import org.openqa.selenium.By
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriver
-import java.util.Properties
+import org.openqa.selenium.support.ui.ExpectedConditions
+import org.openqa.selenium.support.ui.WebDriverWait
+import java.time.Duration
+import java.util.*
 
 
 class LoginTest {
@@ -24,10 +27,12 @@ class LoginTest {
     private val password: String = props.getProperty("password")
 
     private lateinit var driver: WebDriver
+    private lateinit var wait: WebDriverWait
 
     @BeforeEach
     fun setup() {
         driver = ChromeDriver()
+        wait = WebDriverWait(driver, Duration.ofSeconds(5))
     }
 
     @AfterEach
@@ -39,17 +44,31 @@ class LoginTest {
     fun testLogin() {
         driver.get(pageUrl + "user/login")
 
-        val usernameInput: WebElement = driver.findElement(By.name("login"))
-        val passwordInput: WebElement = driver.findElement(By.name("pass"))
+        val usernameLocator = By.id("frm-logInForm-login")
+        val passwordLocator = By.id("passField5")
+        val submitLocator = By.cssSelector("button[type='submit']")
+        val logoutLocator = By.xpath("//a[@href='/user/out']")
 
-        usernameInput.sendKeys(username)
-        passwordInput.sendKeys(password)
+        waitUntilElementIsVisible(usernameLocator)
+        elementFInder(usernameLocator)?.sendKeys(username)
+        waitUntilElementIsVisible(passwordLocator)
+        elementFInder(passwordLocator)?.sendKeys(password)
+        waitUntilElementIsVisible(submitLocator)
+        elementFInder(submitLocator)?.click()
 
-        val loginButton = driver.findElement(By.cssSelector("button[type='submit']"))
-        loginButton.click()
+        waitUntilElementIsVisible(logoutLocator)
+        elementFInder(logoutLocator)?.click()
+    }
 
-        val logoutExists = driver.get("https://top4fitness.hu/user/out")
+    private fun waitUntilElementIsVisible(locator: By) {
+        this.wait.until(ExpectedConditions.visibilityOfElementLocated(locator))
+    }
 
-        assertNotNull(logoutExists)
+    private fun elementFInder(locator: By): WebElement? {
+        return try {
+            driver.findElement(locator)
+        } catch (e: NoSuchElementException) {
+            null
+        }
     }
 }
