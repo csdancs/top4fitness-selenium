@@ -6,12 +6,22 @@ import org.openqa.selenium.By
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriver
+import java.util.Properties
+
 
 class LoginTest {
 
+    val props = Properties()
+
+    init {
+        val inputStream = object {}.javaClass.getResourceAsStream("/application.properties")
+            ?: throw Exception("Could not find application.properties")
+        props.load(inputStream)
+    }
+
     private val pageUrl: String = "https://top4fitness.hu/"
-    private val username: String = "username"
-    private val password: String = "password"
+    private val username: String = props.getProperty("username")
+    private val password: String = props.getProperty("password")
 
     private lateinit var driver: WebDriver
 
