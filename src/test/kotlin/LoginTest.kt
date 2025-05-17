@@ -12,8 +12,8 @@ import java.io.File
 class LoginTest {
 
     private val PAGE_URL: String = "https://top4fitness.hu/"
-    private val USERNAME: String = readCredentials("config.yml").username
-    private val PASSWORD: String = readCredentials("config.yml").password
+    private val USERNAME: String = readCredentials().username
+    private val PASSWORD: String = readCredentials().password
 
     private lateinit var driver: WebDriver
 
@@ -46,8 +46,8 @@ class LoginTest {
     }
 }
 
-private fun readCredentials(filePath: String): Credentials {
-    val input = File(filePath).inputStream()
+private fun readCredentials(): Credentials {
+    val input = File("config.yml").inputStream()
     val yaml = Yaml()
     val data = yaml.loadAs(input, Credentials::class.java)
     return data
