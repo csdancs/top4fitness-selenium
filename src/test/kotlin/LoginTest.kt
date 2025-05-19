@@ -1,5 +1,4 @@
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.By
@@ -10,6 +9,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions
 import org.openqa.selenium.support.ui.WebDriverWait
 import java.time.Duration
 import java.util.*
+import kotlin.test.fail
 
 
 class LoginTest {
@@ -47,27 +47,35 @@ class LoginTest {
         val usernameLocator = By.id("frm-logInForm-login")
         val passwordLocator = By.id("passField5")
         val submitLocator = By.cssSelector("button[type='submit']")
-        val logoutLocator = By.xpath("//a[@href='/user/out']")
 
         waitUntilElementIsVisible(usernameLocator)
-        elementFInder(usernameLocator)?.sendKeys(username)
+        elementFInder(usernameLocator)!!.sendKeys(username)
         waitUntilElementIsVisible(passwordLocator)
-        elementFInder(passwordLocator)?.sendKeys(password)
+        elementFInder(passwordLocator)!!.sendKeys(password)
         waitUntilElementIsVisible(submitLocator)
-        elementFInder(submitLocator)?.click()
+        elementFInder(submitLocator)!!.click()
 
-        waitUntilElementIsVisible(logoutLocator)
-        elementFInder(logoutLocator)?.click()
+        Thread.sleep(5000)
+
+        try {
+            invisibilityOfElementLocated(submitLocator)
+        } catch (_: Exception) {
+            fail("Login failed!")
+        }
     }
 
     private fun waitUntilElementIsVisible(locator: By) {
         this.wait.until(ExpectedConditions.visibilityOfElementLocated(locator))
     }
 
+    private fun invisibilityOfElementLocated(locator: By) {
+        this.wait.until(ExpectedConditions.invisibilityOfElementLocated(locator))
+    }
+
     private fun elementFInder(locator: By): WebElement? {
         return try {
             driver.findElement(locator)
-        } catch (e: NoSuchElementException) {
+        } catch (_: NoSuchElementException) {
             null
         }
     }
