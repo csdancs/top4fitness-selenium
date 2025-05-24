@@ -154,6 +154,32 @@ class LoginTest {
         assertEquals("filling textarea for selenium testing", reviewText.getAttribute("value"))
     }
 
+    @Test
+    fun testStaticPage() {
+        gatDefPageAnd("pg/rolunk")
+        val heading = driver.findElement(By.tagName("h1")).text
+        assertEquals("TOP4SPORT történet", heading)
+    }
+
+    @Test
+    fun testMultipleStaticPages() {
+        val pagesToTest= listOf(
+            Page(pageUrl + "pg/rolunk", "Rólunk - Top4Fitness.hu", "TOP4SPORT történet"),
+            Page(pageUrl + "pg/obchodni-podminky", "Általános Szerződési Feltételek - Top4Fitness.hu", "ÁLTALÁNOS SZERZŐDÉSI FELTÉTELEK"),
+            Page(pageUrl + "pg/visszakuldes-menete", "Termék visszaküldése - Top4Fitness.hu", "Termék visszaküldése")
+        )
+
+        pagesToTest.forEach { page ->
+            driver.get(page.url)
+
+            // check title
+            assertEquals(page.title, driver.title)
+
+            // check main heading
+            assertEquals(page.heading, elementFinder(By.tagName("h1")).text)
+        }
+    }
+
     private fun closeCookiePopup() {
         elementFinder(By.tagName("wecoma-lite"))
             .shadowRoot
@@ -187,3 +213,9 @@ class LoginTest {
     private fun getToast() =
         elementFinder(By.cssSelector("div.toast")).getAttribute("innerText").trim()
 }
+
+data class Page(
+    val url: String,
+    val title: String,
+    val heading: String
+)
