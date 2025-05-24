@@ -57,7 +57,7 @@ class LoginTest {
     @Test
     fun testLogout() {
         login()
-        driver.get("$pageUrl/user/out")
+        gatDefPageAnd("/user/out")
         assertEquals("Sikeresen kijelentkeztél.", getToast())
     }
 
@@ -65,7 +65,7 @@ class LoginTest {
     fun testPasswordChange() {
         login()
         closeCookiePopup()
-        driver.get("$pageUrl/user/change-password")
+        gatDefPageAnd("/user/change-password")
         val currentPasswordLocator = By.name("old_pass")
         val newPasswordLocator = By.name("new_pass1")
         val newPasswordRepeatLocator = By.name("new_pass2")
@@ -91,7 +91,7 @@ class LoginTest {
             document.body.appendChild(d);
         """.trimIndent()
 
-        driver.get(pageUrl + "user/login")
+        gatDefPageAnd("user/login")
 
         val body = elementFinder(By.tagName("body"))
         (driver as JavascriptExecutor).executeScript(js)
@@ -102,7 +102,7 @@ class LoginTest {
 
     @Test
     fun testHoverElement() {
-        driver.get(pageUrl)
+        gatDefPageAnd()
         closeCookiePopup()
 
         val userIcon = elementFinder(By.cssSelector("a[href='/pg/kapcsolat']"))
@@ -114,7 +114,7 @@ class LoginTest {
 
     @Test
     fun testCookieManipulation() {
-        driver.get(pageUrl)
+        gatDefPageAnd()
         driver.manage().addCookie(Cookie("cbat4fi", "eyJjcmVhdGVkQXQiOjE3NDgxMDA5NzB9"))
         driver.navigate().refresh()
 
@@ -131,7 +131,7 @@ class LoginTest {
     }
 
     private fun login() {
-        driver.get(pageUrl + "user/login")
+        gatDefPageAnd("user/login")
         val usernameLocator = By.id("frm-logInForm-login")
         val passwordLocator = By.id("passField5")
         val submitLocator = By.cssSelector("button[type='submit'][name='log_in']")
@@ -151,6 +151,10 @@ class LoginTest {
 
     private fun elementFinder(locator: By): WebElement {
         return driver.findElement(locator)
+    }
+
+    private fun gatDefPageAnd(param: String = "") {
+        driver.get(pageUrl + param)
     }
 
     private fun getToast() =
