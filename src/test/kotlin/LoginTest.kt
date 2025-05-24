@@ -1,8 +1,10 @@
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.By
+import org.openqa.selenium.Cookie
 import org.openqa.selenium.JavascriptExecutor
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
@@ -13,6 +15,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions
 import org.openqa.selenium.support.ui.WebDriverWait
 import java.time.Duration
 import java.util.*
+import kotlin.test.assertNotNull
 
 
 class LoginTest {
@@ -97,6 +100,29 @@ class LoginTest {
         assertEquals("Selenium", selenium.text)
     }
 
+    @Test
+    fun testHoverElement() {
+        driver.get(pageUrl)
+        closeCookiePopup()
+
+        val userIcon = elementFinder(By.cssSelector("a[href='/pg/kapcsolat']"))
+        Actions(driver).moveToElement(userIcon).perform()
+        Thread.sleep(2000)
+        val dropDown = elementFinder(By.cssSelector(".nav-dropdown-list.header-userlist"))
+        assertTrue(dropDown.isDisplayed)
+    }
+
+    @Test
+    fun testCookieManipulation() {
+        driver.get(pageUrl)
+        driver.manage().addCookie(Cookie("cbat4fi", "eyJjcmVhdGVkQXQiOjE3NDgxMDA5NzB9"))
+        driver.navigate().refresh()
+
+        val consentCookie = driver.manage().cookies.firstOrNull { it.name == "cbat4fi" }
+        Thread.sleep(2000)
+        assertNotNull(consentCookie)
+    }
+
     private fun closeCookiePopup() {
         elementFinder(By.tagName("wecoma-lite"))
             .shadowRoot
@@ -129,5 +155,4 @@ class LoginTest {
 
     private fun getToast() =
         elementFinder(By.cssSelector("div.toast")).getAttribute("innerText").trim()
-
 }
