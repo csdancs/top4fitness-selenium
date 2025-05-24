@@ -23,6 +23,9 @@ dependencies {
 
     // YAML
     implementation("org.yaml:snakeyaml:2.2")
+
+    // FAKER
+    testImplementation("io.github.serpro69:kotlin-faker:1.13.0")
 }
 
 tasks.test {

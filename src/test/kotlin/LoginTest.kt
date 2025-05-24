@@ -1,3 +1,4 @@
+import io.github.serpro69.kfaker.Faker
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -52,6 +53,22 @@ class LoginTest {
         val loggedInElement = elementFinder(By.cssSelector("h5"))
         assertEquals("Rendeléseim - Top4Fitness.hu", driver.title)
         assertEquals("Rendeléseim", loggedInElement.text)
+    }
+
+    @Test
+    fun testLoginWithRandomData() {
+        gatDefPageAnd("user/login")
+        val usernameLocator = By.id("frm-logInForm-login")
+        val passwordLocator = By.id("passField5")
+        val submitLocator = By.cssSelector("button[type='submit'][name='log_in']")
+        val fakeUsername = Faker().internet.email()
+
+        waitUntilElementIsVisible(usernameLocator)
+        elementFinder(usernameLocator).sendKeys(fakeUsername)
+        elementFinder(passwordLocator).sendKeys(password)
+        elementFinder(submitLocator).click()
+
+        assertEquals("Bejelentkezés - Top4Fitness.hu", driver.title)
     }
 
     @Test
@@ -121,6 +138,20 @@ class LoginTest {
         val consentCookie = driver.manage().cookies.firstOrNull { it.name == "cbat4fi" }
         Thread.sleep(2000)
         assertNotNull(consentCookie)
+    }
+
+    @Test
+    fun testFillingTextBox() {
+        login()
+        gatDefPageAnd("user/review")
+
+        val reviewTextLocator = By.cssSelector("textarea[name='comment']")
+        var reviewText = elementFinder(reviewTextLocator)
+        waitUntilElementIsVisible(reviewTextLocator)
+        reviewText.sendKeys("filling textarea for selenium testing")
+        reviewText = elementFinder(reviewTextLocator)
+
+        assertEquals("filling textarea for selenium testing", reviewText.getAttribute("value"))
     }
 
     private fun closeCookiePopup() {
