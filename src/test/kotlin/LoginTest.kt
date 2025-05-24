@@ -145,10 +145,6 @@ class LoginTest {
         this.wait.until(ExpectedConditions.visibilityOfElementLocated(locator))
     }
 
-    private fun invisibilityOfElementLocated(locator: By) {
-        this.wait.until(ExpectedConditions.invisibilityOfElementLocated(locator))
-    }
-
     private fun elementFinder(locator: By): WebElement {
         return driver.findElement(locator)
     }
