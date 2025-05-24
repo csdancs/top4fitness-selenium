@@ -122,7 +122,7 @@ class LoginTest {
         gatDefPageAnd()
         closeCookiePopup()
 
-        val userIcon = elementFinder(By.cssSelector("a[href='/pg/kapcsolat']"))
+        val userIcon = elementFinder(By.xpath("//a[@href='/pg/kapcsolat']"))
         Actions(driver).moveToElement(userIcon).perform()
         Thread.sleep(2000)
         val dropDown = elementFinder(By.cssSelector(".nav-dropdown-list.header-userlist"))
