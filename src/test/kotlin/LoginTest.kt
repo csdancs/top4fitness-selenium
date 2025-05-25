@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import org.openqa.selenium.By
 import org.openqa.selenium.Cookie
 import org.openqa.selenium.JavascriptExecutor
+import org.openqa.selenium.Keys
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriver
@@ -163,9 +164,13 @@ class LoginTest {
 
     @Test
     fun testMultipleStaticPages() {
-        val pagesToTest= listOf(
+        val pagesToTest = listOf(
             Page(pageUrl + "pg/rolunk", "Rólunk - Top4Fitness.hu", "TOP4SPORT történet"),
-            Page(pageUrl + "pg/obchodni-podminky", "Általános Szerződési Feltételek - Top4Fitness.hu", "ÁLTALÁNOS SZERZŐDÉSI FELTÉTELEK"),
+            Page(
+                pageUrl + "pg/obchodni-podminky",
+                "Általános Szerződési Feltételek - Top4Fitness.hu",
+                "ÁLTALÁNOS SZERZŐDÉSI FELTÉTELEK"
+            ),
             Page(pageUrl + "pg/visszakuldes-menete", "Termék visszaküldése - Top4Fitness.hu", "Termék visszaküldése")
         )
 
@@ -178,6 +183,17 @@ class LoginTest {
             // check main heading
             assertEquals(page.heading, elementFinder(By.tagName("h1")).text)
         }
+    }
+
+    @Test
+    fun testSendForm() {
+        gatDefPageAnd()
+        val searchBar = elementFinder(By.id("q"))
+        searchBar.sendKeys("cipő")
+        searchBar.sendKeys(Keys.ENTER)
+
+        val currentUrl = driver.currentUrl
+        assertEquals("https://top4fitness.hu/?q=cip%C5%91", currentUrl)
     }
 
     private fun closeCookiePopup() {
