@@ -69,7 +69,7 @@ class TestFeatures {
         passwordChangePage.changePassword()
 
         Thread.sleep(2000)
-        Assertions.assertEquals("A belépési jelszó módosítása sikeresen megtörtént. Jelentkezz be megint.", getToast())
+        Assertions.assertEquals("A belépési jelszó módosítása sikeresen megtörtént. Jelentkezz be megint.", passwordChangePage.getToast())
     }
 
     @Test

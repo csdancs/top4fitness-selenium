@@ -15,4 +15,7 @@ abstract class BasePage(protected val driver: WebDriver) {
     fun waitUntilElementIsVisible(locator: By) {
         this.wait.until(ExpectedConditions.visibilityOfElementLocated(locator))
     }
+
+    fun getToast() =
+        elementFinder(By.cssSelector("div.toast")).getAttribute("innerText").trim()
 }
