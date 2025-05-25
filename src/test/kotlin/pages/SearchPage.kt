@@ -6,11 +6,14 @@ import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
 
 class SearchPage(driver: WebDriver) : BasePage(driver) {
-    private val searchBar: WebElement
-        get() = elementFinder(By.id("q"))
+    private val searchBar: By = By.id("q")
+    val url = mainUrl
 
     fun search(query: String) {
-        searchBar.sendKeys(query)
-        searchBar.sendKeys(Keys.ENTER)
+        waitUntilElementIsVisible(searchBar)
+        val searchBarElement: WebElement = elementFinder(searchBar)
+
+        searchBarElement.sendKeys(query)
+        searchBarElement.sendKeys(Keys.ENTER)
     }
 }

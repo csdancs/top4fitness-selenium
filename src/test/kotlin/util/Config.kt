@@ -11,5 +11,4 @@ object Config {
 
     val username: String = props.getProperty("username")
     val password: String = props.getProperty("password")
-    val pageUrl: String = "https://top4fitness.hu/"
 }

@@ -9,6 +9,7 @@ import java.time.Duration
 
 abstract class BasePage(protected val driver: WebDriver) {
     protected val wait = WebDriverWait(driver, Duration.ofSeconds(5))
+    protected val mainUrl = "https://top4fitness.hu"
 
     fun elementFinder(by: By): WebElement = driver.findElement(by)
 

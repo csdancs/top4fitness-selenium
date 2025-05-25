@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.*
 import org.openqa.selenium.interactions.Actions
-import org.openqa.selenium.support.ui.ExpectedConditions
 import org.openqa.selenium.support.ui.WebDriverWait
 import pages.PasswordChangePage
 import pages.SearchPage
@@ -20,7 +19,7 @@ import kotlin.test.assertNotNull
 
 class TestFeatures {
 
-    private val pageUrl: String = Config.pageUrl
+    private val homePage: String = "https://top4fitness.hu"
     private val username: String = Config.username
     private val password: String = Config.password
 
@@ -40,8 +39,11 @@ class TestFeatures {
 
     @Test
     fun testLogin() {
-        login()
-        val loggedInElement = elementFinder(By.cssSelector("h5"))
+        val loginPage = LoginPage(driver)
+        goToPage(loginPage.url)
+        loginPage.login(username, password)
+
+        val loggedInElement = loginPage.elementFinder(By.cssSelector("h5"))
 
         Assertions.assertEquals("Rendeléseim - Top4Fitness.hu", driver.title)
         Assertions.assertEquals("Rendeléseim", loggedInElement.text)
@@ -49,42 +51,51 @@ class TestFeatures {
 
     @Test
     fun testLoginWithRandomData() {
-        loginWithFakeUser()
+        loginWithFakeUser(LoginPage(driver))
         Assertions.assertEquals("Bejelentkezés - Top4Fitness.hu", driver.title)
     }
 
     @Test
     fun testLogout() {
-        logout()
-        Assertions.assertEquals("Sikeresen kijelentkeztél.", getToast())
+        val loginPage = LoginPage(driver)
+        goToPage(loginPage.url)
+        loginPage.login(username, password)
+        loginPage.logout()
+
+        Assertions.assertEquals("Sikeresen kijelentkeztél.", loginPage.getToast())
     }
 
     @Test
     fun testPasswordChange() {
-        login()
+        val loginPage = LoginPage(driver)
+        goToPage(loginPage.url)
+        loginPage.login(username, password)
         closeCookiePopup()
-        getDefPageAnd("/user/change-password")
-
         val passwordChangePage = PasswordChangePage(driver, password)
+        goToPage(passwordChangePage.url)
+
         passwordChangePage.changePassword()
 
         Thread.sleep(2000)
-        Assertions.assertEquals("A belépési jelszó módosítása sikeresen megtörtént. Jelentkezz be megint.", passwordChangePage.getToast())
+        Assertions.assertEquals(
+            "A belépési jelszó módosítása sikeresen megtörtént. Jelentkezz be megint.",
+            passwordChangePage.getToast()
+        )
     }
 
     @Test
     fun testJavascriptExecutor() {
-        val js = """
+        goToPage(homePage)
+
+        val script = """
             const d = document.createElement('div');
             d.innerText = 'Selenium';
             d.classList.add('selenium');
             document.body.appendChild(d);
         """.trimIndent()
 
-        getDefPageAnd("user/login")
-
-        val body = elementFinder(By.tagName("body"))
-        (driver as JavascriptExecutor).executeScript(js)
+        val body = driver.findElement(By.tagName("body"))
+        (driver as JavascriptExecutor).executeScript(script)
 
         val selenium = body.findElement(By.className("selenium"))
         Assertions.assertEquals("Selenium", selenium.text)
@@ -92,19 +103,19 @@ class TestFeatures {
 
     @Test
     fun testHoverElement() {
-        getDefPageAnd()
+        goToPage(homePage)
         closeCookiePopup()
 
-        val userIcon = elementFinder(By.xpath("//a[@href='/pg/kapcsolat']"))
+        val userIcon = driver.findElement(By.xpath("//a[@href='/pg/kapcsolat']"))
         Actions(driver).moveToElement(userIcon).perform()
         Thread.sleep(2000)
-        val dropDown = elementFinder(By.cssSelector(".nav-dropdown-list.header-userlist"))
+        val dropDown = driver.findElement(By.cssSelector(".nav-dropdown-list.header-userlist"))
         Assertions.assertTrue(dropDown.isDisplayed)
     }
 
     @Test
     fun testCookieManipulation() {
-        getDefPageAnd()
+        goToPage(homePage)
         driver.manage().addCookie(Cookie("cbat4fi", "eyJjcmVhdGVkQXQiOjE3NDgxMDA5NzB9"))
         driver.navigate().refresh()
 
@@ -115,21 +126,20 @@ class TestFeatures {
 
     @Test
     fun testFillingTextBox() {
-        login()
-        getDefPageAnd("user/review")
+        val loginPage = LoginPage(driver)
+        goToPage(loginPage.url)
+        loginPage.login(username, password)
+        goToPage(loginPage.reviewUrl)
 
-        val reviewTextLocator = By.cssSelector("textarea[name='comment']")
-        var reviewText = elementFinder(reviewTextLocator)
-        waitUntilElementIsVisible(reviewTextLocator)
-        reviewText.sendKeys("filling textarea for selenium testing")
-        reviewText = elementFinder(reviewTextLocator)
+        val keysToSend = "filling textbox for selenium testing"
+        val textBoxValue = loginPage.getValueAfterFillingTextBox(keysToSend)
 
-        Assertions.assertEquals("filling textarea for selenium testing", reviewText.getAttribute("value"))
+        Assertions.assertEquals(keysToSend, textBoxValue)
     }
 
     @Test
     fun testStaticPage() {
-        getDefPageAnd("pg/rolunk")
+        goToPage("${homePage}/pg/rolunk")
         val heading = driver.findElement(By.tagName("h1")).text
         Assertions.assertEquals("TOP4SPORT történet", heading)
     }
@@ -137,29 +147,29 @@ class TestFeatures {
     @Test
     fun testMultipleStaticPages() {
         val pagesToTest = listOf(
-            Page(pageUrl + "pg/rolunk", "Rólunk - Top4Fitness.hu", "TOP4SPORT történet"),
+            Page("$homePage/pg/rolunk", "Rólunk - Top4Fitness.hu", "TOP4SPORT történet"),
             Page(
-                pageUrl + "pg/obchodni-podminky",
+                "$homePage/pg/obchodni-podminky",
                 "Általános Szerződési Feltételek - Top4Fitness.hu",
                 "ÁLTALÁNOS SZERZŐDÉSI FELTÉTELEK"
             ),
-            Page(pageUrl + "pg/visszakuldes-menete", "Termék visszaküldése - Top4Fitness.hu", "Termék visszaküldése")
+            Page("$homePage/pg/visszakuldes-menete", "Termék visszaküldése - Top4Fitness.hu", "Termék visszaküldése")
         )
 
         pagesToTest.forEach { page ->
-            driver.get(page.url)
+            goToPage(page.url)
 
             // check title
             Assertions.assertEquals(page.title, driver.title)
 
-            // check main heading
-            Assertions.assertEquals(page.heading, elementFinder(By.tagName("h1")).text)
+            // check the main heading
+            Assertions.assertEquals(page.heading, driver.findElement(By.tagName("h1")).text)
         }
     }
 
     @Test
     fun testSendForm() {
-        getDefPageAnd()
+        driver.get(homePage)
         val searchPage = SearchPage(driver)
         searchPage.search("cipő")
 
@@ -167,45 +177,20 @@ class TestFeatures {
         Assertions.assertEquals("https://top4fitness.hu/?q=cip%C5%91", currentUrl)
     }
 
-    private fun login() {
-        getDefPageAnd("/user/login")
-        val loginPage = LoginPage(driver)
-        loginPage.login(username, password)
-    }
-
-    private fun loginWithFakeUser() {
-        getDefPageAnd("/user/login")
-        val loginPage = LoginPage(driver)
+    private fun loginWithFakeUser(loginPage: LoginPage) {
+        goToPage(loginPage.url)
         val fakeUsername = Faker().internet.email()
-
         loginPage.login(fakeUsername, password)
     }
 
     private fun closeCookiePopup() {
-        elementFinder(By.tagName("wecoma-lite"))
+        driver.findElement(By.tagName("wecoma-lite"))
             .shadowRoot
             .findElement(By.cssSelector("button.primaryAction"))
             .click()
     }
 
-    private fun logout() {
-        getDefPageAnd("/user/login")
-        val loginPage = LoginPage(driver)
-
-        loginPage.login(username, password)
-        loginPage.logout()
+    private fun goToPage(url: String) {
+        driver.get(url)
     }
-
-    private fun getDefPageAnd(path: String = "") {
-        driver.get(pageUrl + path)
-    }
-
-    private fun elementFinder(by: By): WebElement = driver.findElement(by)
-
-    private fun waitUntilElementIsVisible(locator: By) {
-        this.wait.until(ExpectedConditions.visibilityOfElementLocated(locator))
-    }
-
-    private fun getToast() =
-        elementFinder(By.cssSelector("div.toast")).getAttribute("innerText").trim()
 }

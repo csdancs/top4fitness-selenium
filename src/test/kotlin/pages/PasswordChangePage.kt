@@ -8,14 +8,11 @@ class PasswordChangePage(
     driver: WebDriver,
     private val password: String
 ) : BasePage(driver) {
-    private val currentPasswordLocator: By
-        get() = By.name("old_pass")
-    private val newPasswordLocator: By
-        get() = By.name("new_pass1")
-    private val newPasswordRepeatLocator: By
-        get() = By.name("new_pass2")
-    private val submitLocator: By
-        get() = By.cssSelector("input[type='submit'][name='send']")
+    private val currentPasswordLocator: By = By.name("old_pass")
+    private val newPasswordLocator: By = By.name("new_pass1")
+    private val newPasswordRepeatLocator: By = By.name("new_pass2")
+    private val submitLocator: By = By.cssSelector("input[type='submit'][name='send']")
+    val url = "$mainUrl/user/change-password"
 
 
     fun changePassword() {

@@ -2,24 +2,35 @@ package pages
 
 import org.openqa.selenium.By
 import org.openqa.selenium.WebDriver
-import org.openqa.selenium.WebElement
 
 class LoginPage(driver: WebDriver) : BasePage(driver) {
 
-    private val usernameField: WebElement
-        get() = driver.findElement(By.id("frm-logInForm-login"))
+    private val usernameField: By = By.id("frm-logInForm-login")
+    private val passwordField: By = By.id("passField5")
+    private val loginButton: By = By.cssSelector("button[type='submit'][name='log_in']")
+    private val reviewTextLocator = By.cssSelector("textarea[name='comment']")
 
-    private val passwordField: WebElement
-        get() = driver.findElement(By.id("passField5"))
-
-    private val loginButton: WebElement
-        get() = driver.findElement(By.cssSelector("button[type='submit'][name='log_in']"))
+    val url = "$mainUrl/user/login"
+    val reviewUrl = "$mainUrl/user/review"
 
     fun login(username: String, password: String) {
-        usernameField.sendKeys(username)
-        passwordField.sendKeys(password)
+        waitUntilElementIsVisible(usernameField)
+        elementFinder(usernameField).sendKeys(username)
+        waitUntilElementIsVisible(passwordField)
+        elementFinder(passwordField).sendKeys(password)
+
         Thread.sleep(2000)
-        loginButton.click()
+
+        waitUntilElementIsVisible(loginButton)
+        elementFinder(loginButton).click()
+    }
+
+    fun getValueAfterFillingTextBox(keysToSend: String): String {
+        val reviewTextElement = elementFinder(reviewTextLocator)
+
+        waitUntilElementIsVisible(reviewTextLocator)
+        reviewTextElement.sendKeys(keysToSend)
+        return elementFinder(reviewTextLocator).getAttribute("value")
     }
 
     fun logout() {
