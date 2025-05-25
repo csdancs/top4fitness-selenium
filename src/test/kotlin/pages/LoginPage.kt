@@ -1,8 +1,10 @@
+package pages
+
 import org.openqa.selenium.By
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
 
-class LoginPage(private val driver: WebDriver) {
+class LoginPage(driver: WebDriver) : BasePage(driver) {
 
     private val usernameField: WebElement
         get() = driver.findElement(By.id("frm-logInForm-login"))

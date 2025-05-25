@@ -1,45 +1,35 @@
+package tests
+
+import pages.LoginPage
+import util.Page
 import io.github.serpro69.kfaker.Faker
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.openqa.selenium.By
-import org.openqa.selenium.Cookie
-import org.openqa.selenium.JavascriptExecutor
-import org.openqa.selenium.Keys
-import org.openqa.selenium.WebDriver
-import org.openqa.selenium.WebElement
-import org.openqa.selenium.chrome.ChromeDriver
-import org.openqa.selenium.chrome.ChromeOptions
+import org.openqa.selenium.*
 import org.openqa.selenium.interactions.Actions
 import org.openqa.selenium.support.ui.ExpectedConditions
 import org.openqa.selenium.support.ui.WebDriverWait
+import pages.PasswordChangePage
+import pages.SearchPage
+import util.Config
+import util.DriverFactory
 import java.time.Duration
-import java.util.*
 import kotlin.test.assertNotNull
-
 
 class TestFeatures {
 
-    val props = Properties()
-
-    init {
-        val inputStream = object {}.javaClass.getResourceAsStream("/application.properties")
-            ?: throw Exception("Could not find application.properties")
-        props.load(inputStream)
-    }
-
-    private val pageUrl: String = "https://top4fitness.hu/"
-    private val username: String = props.getProperty("username")
-    private val password: String = props.getProperty("password")
+    private val pageUrl: String = Config.pageUrl
+    private val username: String = Config.username
+    private val password: String = Config.password
 
     private lateinit var driver: WebDriver
     private lateinit var wait: WebDriverWait
 
     @BeforeEach
     fun setup() {
-        driver = ChromeDriver(ChromeOptions().addArguments("start-maximized", "incognito"))
+        driver = DriverFactory.create()
         wait = WebDriverWait(driver, Duration.ofSeconds(5))
     }
 
@@ -53,20 +43,20 @@ class TestFeatures {
         login()
         val loggedInElement = elementFinder(By.cssSelector("h5"))
 
-        assertEquals("Rendeléseim - Top4Fitness.hu", driver.title)
-        assertEquals("Rendeléseim", loggedInElement.text)
+        Assertions.assertEquals("Rendeléseim - Top4Fitness.hu", driver.title)
+        Assertions.assertEquals("Rendeléseim", loggedInElement.text)
     }
 
     @Test
     fun testLoginWithRandomData() {
         loginWithFakeUser()
-        assertEquals("Bejelentkezés - Top4Fitness.hu", driver.title)
+        Assertions.assertEquals("Bejelentkezés - Top4Fitness.hu", driver.title)
     }
 
     @Test
     fun testLogout() {
         logout()
-        assertEquals("Sikeresen kijelentkeztél.", getToast())
+        Assertions.assertEquals("Sikeresen kijelentkeztél.", getToast())
     }
 
     @Test
@@ -75,23 +65,11 @@ class TestFeatures {
         closeCookiePopup()
         getDefPageAnd("/user/change-password")
 
-        val currentPasswordLocator = By.name("old_pass")
-        val newPasswordLocator = By.name("new_pass1")
-        val newPasswordRepeatLocator = By.name("new_pass2")
-        val submitLocator = By.cssSelector("input[type='submit'][name='send']")
+        val passwordChangePage = PasswordChangePage(driver, password)
+        passwordChangePage.changePassword()
 
-        waitUntilElementIsVisible(currentPasswordLocator)
-        elementFinder(currentPasswordLocator).sendKeys(password)
-        waitUntilElementIsVisible(newPasswordLocator)
-        elementFinder(newPasswordLocator).sendKeys(password)
-        waitUntilElementIsVisible(newPasswordRepeatLocator)
-        elementFinder(newPasswordRepeatLocator).sendKeys(password)
-
-        val submitElement = elementFinder(submitLocator)
-        Actions(driver).moveToElement(submitElement).click().perform()
         Thread.sleep(2000)
-
-        assertEquals("A belépési jelszó módosítása sikeresen megtörtént. Jelentkezz be megint.", getToast())
+        Assertions.assertEquals("A belépési jelszó módosítása sikeresen megtörtént. Jelentkezz be megint.", getToast())
     }
 
     @Test
@@ -109,7 +87,7 @@ class TestFeatures {
         (driver as JavascriptExecutor).executeScript(js)
 
         val selenium = body.findElement(By.className("selenium"))
-        assertEquals("Selenium", selenium.text)
+        Assertions.assertEquals("Selenium", selenium.text)
     }
 
     @Test
@@ -121,7 +99,7 @@ class TestFeatures {
         Actions(driver).moveToElement(userIcon).perform()
         Thread.sleep(2000)
         val dropDown = elementFinder(By.cssSelector(".nav-dropdown-list.header-userlist"))
-        assertTrue(dropDown.isDisplayed)
+        Assertions.assertTrue(dropDown.isDisplayed)
     }
 
     @Test
@@ -146,14 +124,14 @@ class TestFeatures {
         reviewText.sendKeys("filling textarea for selenium testing")
         reviewText = elementFinder(reviewTextLocator)
 
-        assertEquals("filling textarea for selenium testing", reviewText.getAttribute("value"))
+        Assertions.assertEquals("filling textarea for selenium testing", reviewText.getAttribute("value"))
     }
 
     @Test
     fun testStaticPage() {
         getDefPageAnd("pg/rolunk")
         val heading = driver.findElement(By.tagName("h1")).text
-        assertEquals("TOP4SPORT történet", heading)
+        Assertions.assertEquals("TOP4SPORT történet", heading)
     }
 
     @Test
@@ -172,22 +150,21 @@ class TestFeatures {
             driver.get(page.url)
 
             // check title
-            assertEquals(page.title, driver.title)
+            Assertions.assertEquals(page.title, driver.title)
 
             // check main heading
-            assertEquals(page.heading, elementFinder(By.tagName("h1")).text)
+            Assertions.assertEquals(page.heading, elementFinder(By.tagName("h1")).text)
         }
     }
 
     @Test
     fun testSendForm() {
         getDefPageAnd()
-        val searchBar = elementFinder(By.id("q"))
-        searchBar.sendKeys("cipő")
-        searchBar.sendKeys(Keys.ENTER)
+        val searchPage = SearchPage(driver)
+        searchPage.search("cipő")
 
         val currentUrl = driver.currentUrl
-        assertEquals("https://top4fitness.hu/?q=cip%C5%91", currentUrl)
+        Assertions.assertEquals("https://top4fitness.hu/?q=cip%C5%91", currentUrl)
     }
 
     private fun login() {
@@ -219,14 +196,14 @@ class TestFeatures {
         loginPage.logout()
     }
 
-    private fun waitUntilElementIsVisible(locator: By) {
-        this.wait.until(ExpectedConditions.visibilityOfElementLocated(locator))
-    }
-
-    private fun elementFinder(locator: By): WebElement = driver.findElement(locator)
-
     private fun getDefPageAnd(path: String = "") {
         driver.get(pageUrl + path)
+    }
+
+    private fun elementFinder(by: By): WebElement = driver.findElement(by)
+
+    private fun waitUntilElementIsVisible(locator: By) {
+        this.wait.until(ExpectedConditions.visibilityOfElementLocated(locator))
     }
 
     private fun getToast() =
