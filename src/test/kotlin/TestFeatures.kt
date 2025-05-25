@@ -20,7 +20,7 @@ import java.util.*
 import kotlin.test.assertNotNull
 
 
-class LoginTest {
+class TestFeatures {
 
     val props = Properties()
 
@@ -52,30 +52,20 @@ class LoginTest {
     fun testLogin() {
         login()
         val loggedInElement = elementFinder(By.cssSelector("h5"))
+
         assertEquals("Rendeléseim - Top4Fitness.hu", driver.title)
         assertEquals("Rendeléseim", loggedInElement.text)
     }
 
     @Test
     fun testLoginWithRandomData() {
-        gatDefPageAnd("user/login")
-        val usernameLocator = By.id("frm-logInForm-login")
-        val passwordLocator = By.id("passField5")
-        val submitLocator = By.cssSelector("button[type='submit'][name='log_in']")
-        val fakeUsername = Faker().internet.email()
-
-        waitUntilElementIsVisible(usernameLocator)
-        elementFinder(usernameLocator).sendKeys(fakeUsername)
-        elementFinder(passwordLocator).sendKeys(password)
-        elementFinder(submitLocator).click()
-
+        loginWithFakeUser()
         assertEquals("Bejelentkezés - Top4Fitness.hu", driver.title)
     }
 
     @Test
     fun testLogout() {
-        login()
-        gatDefPageAnd("/user/out")
+        logout()
         assertEquals("Sikeresen kijelentkeztél.", getToast())
     }
 
@@ -83,14 +73,18 @@ class LoginTest {
     fun testPasswordChange() {
         login()
         closeCookiePopup()
-        gatDefPageAnd("/user/change-password")
+        getDefPageAnd("/user/change-password")
+
         val currentPasswordLocator = By.name("old_pass")
         val newPasswordLocator = By.name("new_pass1")
         val newPasswordRepeatLocator = By.name("new_pass2")
         val submitLocator = By.cssSelector("input[type='submit'][name='send']")
+
         waitUntilElementIsVisible(currentPasswordLocator)
         elementFinder(currentPasswordLocator).sendKeys(password)
+        waitUntilElementIsVisible(newPasswordLocator)
         elementFinder(newPasswordLocator).sendKeys(password)
+        waitUntilElementIsVisible(newPasswordRepeatLocator)
         elementFinder(newPasswordRepeatLocator).sendKeys(password)
 
         val submitElement = elementFinder(submitLocator)
@@ -109,7 +103,7 @@ class LoginTest {
             document.body.appendChild(d);
         """.trimIndent()
 
-        gatDefPageAnd("user/login")
+        getDefPageAnd("user/login")
 
         val body = elementFinder(By.tagName("body"))
         (driver as JavascriptExecutor).executeScript(js)
@@ -120,7 +114,7 @@ class LoginTest {
 
     @Test
     fun testHoverElement() {
-        gatDefPageAnd()
+        getDefPageAnd()
         closeCookiePopup()
 
         val userIcon = elementFinder(By.xpath("//a[@href='/pg/kapcsolat']"))
@@ -132,7 +126,7 @@ class LoginTest {
 
     @Test
     fun testCookieManipulation() {
-        gatDefPageAnd()
+        getDefPageAnd()
         driver.manage().addCookie(Cookie("cbat4fi", "eyJjcmVhdGVkQXQiOjE3NDgxMDA5NzB9"))
         driver.navigate().refresh()
 
@@ -144,7 +138,7 @@ class LoginTest {
     @Test
     fun testFillingTextBox() {
         login()
-        gatDefPageAnd("user/review")
+        getDefPageAnd("user/review")
 
         val reviewTextLocator = By.cssSelector("textarea[name='comment']")
         var reviewText = elementFinder(reviewTextLocator)
@@ -157,7 +151,7 @@ class LoginTest {
 
     @Test
     fun testStaticPage() {
-        gatDefPageAnd("pg/rolunk")
+        getDefPageAnd("pg/rolunk")
         val heading = driver.findElement(By.tagName("h1")).text
         assertEquals("TOP4SPORT történet", heading)
     }
@@ -187,13 +181,27 @@ class LoginTest {
 
     @Test
     fun testSendForm() {
-        gatDefPageAnd()
+        getDefPageAnd()
         val searchBar = elementFinder(By.id("q"))
         searchBar.sendKeys("cipő")
         searchBar.sendKeys(Keys.ENTER)
 
         val currentUrl = driver.currentUrl
         assertEquals("https://top4fitness.hu/?q=cip%C5%91", currentUrl)
+    }
+
+    private fun login() {
+        getDefPageAnd("/user/login")
+        val loginPage = LoginPage(driver)
+        loginPage.login(username, password)
+    }
+
+    private fun loginWithFakeUser() {
+        getDefPageAnd("/user/login")
+        val loginPage = LoginPage(driver)
+        val fakeUsername = Faker().internet.email()
+
+        loginPage.login(fakeUsername, password)
     }
 
     private fun closeCookiePopup() {
@@ -203,35 +211,24 @@ class LoginTest {
             .click()
     }
 
-    private fun login() {
-        gatDefPageAnd("user/login")
-        val usernameLocator = By.id("frm-logInForm-login")
-        val passwordLocator = By.id("passField5")
-        val submitLocator = By.cssSelector("button[type='submit'][name='log_in']")
-        waitUntilElementIsVisible(usernameLocator)
-        elementFinder(usernameLocator).sendKeys(username)
-        elementFinder(passwordLocator).sendKeys(password)
-        elementFinder(submitLocator).click()
+    private fun logout() {
+        getDefPageAnd("/user/login")
+        val loginPage = LoginPage(driver)
+
+        loginPage.login(username, password)
+        loginPage.logout()
     }
 
     private fun waitUntilElementIsVisible(locator: By) {
         this.wait.until(ExpectedConditions.visibilityOfElementLocated(locator))
     }
 
-    private fun elementFinder(locator: By): WebElement {
-        return driver.findElement(locator)
-    }
+    private fun elementFinder(locator: By): WebElement = driver.findElement(locator)
 
-    private fun gatDefPageAnd(param: String = "") {
-        driver.get(pageUrl + param)
+    private fun getDefPageAnd(path: String = "") {
+        driver.get(pageUrl + path)
     }
 
     private fun getToast() =
         elementFinder(By.cssSelector("div.toast")).getAttribute("innerText").trim()
 }
-
-data class Page(
-    val url: String,
-    val title: String,
-    val heading: String
-)
